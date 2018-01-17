@@ -17,7 +17,8 @@ namespace Threads
         }
         private class DataStore { public int Value { get; set; } }
 
-        private DataStore store = new DataStore();
+        private DataStore store1 = new DataStore();
+        private DataStore store2 = new DataStore();
 
         public void ConcurrencyTest()
         {
@@ -25,17 +26,44 @@ namespace Threads
             var thread2 = new Thread(IncrementTheValue);
 
             thread1.Start();
-            thread2.Start();
+            Thread.Sleep(5);
+            Console.WriteLine("Locking store2");
+            lock (store2)
+            {
+                Console.WriteLine("Locked store2");
+                Console.WriteLine("Locking store1");
+                lock (store1)
+                {
+                    Console.WriteLine("Locked store1");
+                }
+                Console.WriteLine("Released store2");
+            }
+            Console.WriteLine("Released store2");
+            //thread2.Start();
 
-            thread1.Join(); // Wait for the thread to finish executing
-            thread2.Join();
+            //thread1.Join(); // Wait for the thread to finish executing
+            //thread2.Join();
 
-            Console.WriteLine($"Final value: {store.Value}");
+            Console.WriteLine($"Final value: {store1.Value}");
         }
 
         private void IncrementTheValue()
         {
-            store.Value++;
+            Console.WriteLine("Locking store1");
+            lock (store1)
+            {
+                Console.WriteLine("Locked store1");
+                Thread.Sleep(10);
+                Console.WriteLine("Locking store2");
+                lock (store2)
+                {
+                    Console.WriteLine("Locked store2");
+                }
+                Console.WriteLine("Released store2");
+            }
+            Console.WriteLine("Released store1");
+            store1.Value++;
+            store2.Value++;
         }
     }
 }
